@@ -48,7 +48,7 @@ ExtendablePoolAllocator::~ExtendablePoolAllocator() {
         prev = crt->prev;
         area = crt->allocator.get_start_address();
         crt->~pool_link(); // this assumes that the PoolAllocator doesn't free its storage!
-        mbed_ufree(area);
+        mbed_ufree(area, (void*)__builtin_extract_return_addr(__builtin_return_address(0)));
         crt = prev;
     }
 }
@@ -127,7 +127,7 @@ ExtendablePoolAllocator::pool_link* ExtendablePoolAllocator::create_new_pool(siz
     // Layout: pool storage area | pool_link structure (pointer to previous pool and PoolAllocator instance)
     // Since the pool storage area aligns all the allocations internally to at least 4 bytes, the pool_link address will be correctly aligned
     size_t pool_storage_size = PoolAllocator::get_pool_size(elements, _element_size, _alignment);
-    void *temp = mbed_ualloc(pool_storage_size + sizeof(pool_link), _alloc_traits);
+    void *temp = mbed_ualloc(pool_storage_size + sizeof(pool_link), _alloc_traits, (void*)__builtin_extract_return_addr(__builtin_return_address(0)));
     if (temp == NULL)
         return NULL;
     pool_link *p = new((char*)temp + pool_storage_size) pool_link(temp, elements, _element_size, _alignment, prev);

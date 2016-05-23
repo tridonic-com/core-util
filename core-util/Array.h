@@ -65,7 +65,7 @@ public:
             prev = crt->prev;
             void *addr = crt->data;
             crt->~array_link(); // not really needed, just for completion
-            mbed_ufree(addr);
+            mbed_ufree(addr, (void*)__builtin_extract_return_addr(__builtin_return_address(0)));
             crt = prev;
         }
     }
@@ -228,7 +228,7 @@ private:
         // Layout: array storage area | array_link structure
         // Since the array elements are aligned to at least 4 bytes, the array_link address will be correctly aligned
         size_t array_storage_size = _element_size * elements;
-        void *temp = mbed_ualloc(array_storage_size + sizeof(array_link), _alloc_traits);
+        void *temp = mbed_ualloc(array_storage_size + sizeof(array_link), _alloc_traits, (void*)__builtin_extract_return_addr(__builtin_return_address(0)));
         if (temp == NULL)
             return NULL;
         array_link *p = new((char*)temp + array_storage_size) array_link(temp, first_idx, prev);
